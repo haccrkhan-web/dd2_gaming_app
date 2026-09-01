@@ -1,7 +1,7 @@
 name: dd2_gaming_app
-description: "DD1 Casino and Aviator game app"
+description: "DD1 VIP Real Money Gaming Platform"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.2+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:
