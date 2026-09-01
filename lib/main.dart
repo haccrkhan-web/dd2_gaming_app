@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,11 +14,12 @@ void main() {
 }
 
 // ---------------------------------------------------------------------------
-// ADMIN & CORE CONFIG
+// ADMIN & CORE PLATFORM CONFIGURATION
 // ---------------------------------------------------------------------------
 const String APP_TITLE = "DD1 VIP CASINO";
 const String ADMIN_UPI_ID = "fardinkhan7860011111@okhdfcbank";
 const String ADMIN_NAME = "Fardin Khan";
+const String ADMIN_SECRET_PIN = "7860";
 
 class AdminConfig {
   static double houseEdge = 0.12;
@@ -28,20 +29,12 @@ class AdminConfig {
 }
 
 class UserSession {
-  static double balance = 1000.00;
+  static double balance = 0.00;
+  static bool welcomeBonusClaimed = false;
   static String playerId = "VIP_${Random().nextInt(899999) + 100000}";
   static String vipTier = "DIAMOND VIP";
 
-  static List<Map<String, dynamic>> passbook = [
-    {
-      'id': 'TXN_WELCOME_881',
-      'title': 'VIP Sign-up Welcome Gift',
-      'amount': 1000.0,
-      'isCredit': true,
-      'status': 'Success',
-      'time': 'Just now'
-    }
-  ];
+  static List<Map<String, dynamic>> passbook = [];
 
   static void addRecord(String title, double amount, bool isCredit, String status) {
     HapticFeedback.lightImpact();
@@ -57,7 +50,7 @@ class UserSession {
 }
 
 // ---------------------------------------------------------------------------
-// APP ENTRY & THEME
+// ROOT THEME
 // ---------------------------------------------------------------------------
 class DD1VIPPlatform extends StatelessWidget {
   const DD1VIPPlatform({super.key});
@@ -160,7 +153,7 @@ class _SplashScreenState extends State<SplashScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// 2. GOOGLE & 1-TAP LOGIN SCREEN
+// 2. AUTH SCREEN
 // ---------------------------------------------------------------------------
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -170,25 +163,15 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool _loading = false;
+  final _phoneCtrl = TextEditingController();
 
-  Future<void> _handleGoogleSignIn() async {
-    setState(() => _loading = true);
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
-      final GoogleSignInAccount? account = await googleSignIn.signIn();
-
-      if (account != null) {
-        UserSession.playerId = "VIP_${account.email.split('@')[0].toUpperCase()}";
-      }
-    } catch (_) {
-      UserSession.playerId = "VIP_G_${Random().nextInt(8999) + 1000}";
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainLobbyScreen()));
-      }
+  void _proceedLogin() {
+    if (_phoneCtrl.text.trim().length >= 4) {
+      UserSession.playerId = "VIP_${_phoneCtrl.text.trim().substring(max(0, _phoneCtrl.text.trim().length - 4))}_${Random().nextInt(899) + 100}";
+    } else {
+      UserSession.playerId = "VIP_${Random().nextInt(899999) + 100000}";
     }
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainLobbyScreen()));
   }
 
   @override
@@ -230,60 +213,34 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 36),
 
-                  // GOOGLE 1-TAP LOGIN
-                  Container(
-                    width: double.infinity,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.amber.withOpacity(0.6)),
-                      boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10)],
-                    ),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      onPressed: _loading ? null : _handleGoogleSignIn,
-                      icon: const Icon(Icons.g_mobiledata, color: Colors.redAccent, size: 30),
-                      label: _loading
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                          : const Text(
-                              'Continue with Google',
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                            ),
+                  TextField(
+                    controller: _phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    maxLength: 10,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      prefixText: '+91 ',
+                      prefixStyle: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                      labelText: 'Enter Mobile Number',
+                      labelStyle: const TextStyle(color: Colors.white60),
+                      filled: true,
+                      fillColor: const Color(0xFF26100E),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     ),
                   ),
+                  const SizedBox(height: 16),
 
-                  const SizedBox(height: 20),
-                  const Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.white24)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text('OR QUICK LOGIN', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold)),
-                      ),
-                      Expanded(child: Divider(color: Colors.white24)),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 1-TAP INSTANT PASS
                   SizedBox(
                     width: double.infinity,
                     height: 50,
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.amber),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () {
-                        UserSession.playerId = "VIP_${Random().nextInt(899999) + 100000}";
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainLobbyScreen()));
-                      },
-                      icon: const Icon(Icons.flash_on, color: Colors.amber),
-                      label: const Text('1-Tap Instant Guest Login', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 14)),
+                      onPressed: _proceedLogin,
+                      child: const Text('ENTER VIP CASINO', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 15)),
                     ),
                   ),
 
@@ -339,6 +296,12 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
         });
       }
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!UserSession.welcomeBonusClaimed) {
+        _showWelcomeBonusModal();
+      }
+    });
   }
 
   @override
@@ -349,6 +312,60 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
 
   void _nav(Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((_) => setState(() {}));
+  }
+
+  void _showWelcomeBonusModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1C0A09),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Colors.amber, width: 2)),
+        title: const Center(
+          child: Text('🎉 WELCOME BONUS', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 20, letterSpacing: 1.5)),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF2E100E)),
+              child: const Icon(Icons.card_giftcard, size: 50, color: Colors.amber),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Claim your Free Sign-up Bonus to start playing without deposit!',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '₹ 50.00',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.greenAccent),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              onPressed: () {
+                setState(() {
+                  UserSession.balance += 50.00;
+                  UserSession.welcomeBonusClaimed = true;
+                  UserSession.addRecord("Sign-up Welcome Bonus", 50.0, true, "Success");
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green, content: Text('🎉 ₹50 Bonus added to wallet!')));
+              },
+              child: const Text('CLAIM ₹50 BONUS NOW', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showDepositDialog() {
@@ -363,6 +380,8 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setM) {
+          final upiUri = "upi://pay?pa=$ADMIN_UPI_ID&pn=${Uri.encodeComponent(ADMIN_NAME)}&am=$selectedAmt&cu=INR";
+
           return Padding(
             padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 16, right: 16, top: 16),
             child: SingleChildScrollView(
@@ -398,8 +417,9 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
                     }).toList(),
                   ),
                   const SizedBox(height: 14),
+
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -407,22 +427,20 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
                     ),
                     child: Column(
                       children: [
-                        SizedBox(
-                          width: 160,
-                          height: 160,
-                          child: CustomPaint(
-                            painter: PureVectorQRPainter(
-                              upiUri: "upi://pay?pa=$ADMIN_UPI_ID&pn=${Uri.encodeComponent(ADMIN_NAME)}&am=$selectedAmt&cu=INR",
-                            ),
-                          ),
+                        QrImageView(
+                          data: upiUri,
+                          version: QrVersions.auto,
+                          size: 160.0,
+                          backgroundColor: Colors.white,
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Text('Scan & Pay ₹$selectedAmt to $ADMIN_NAME', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
                         const Text('PhonePe • Google Pay • Paytm • BHIM UPI', style: TextStyle(color: Colors.black54, fontSize: 10, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
                   const SizedBox(height: 12),
+
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(color: const Color(0xFF26100E), borderRadius: BorderRadius.circular(10)),
@@ -478,24 +496,4 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
                           UserSession.addRecord("Deposit Added (UTR: ${utrCtrl.text.trim()})", selectedAmt.toDouble(), true, "Approved");
                         });
                         Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Colors.green, content: Text('₹$selectedAmt Credited to Wallet!')));
-                      },
-                      child: Text('SUBMIT & ADD ₹$selectedAmt', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showWithdrawDialog() {
-    final amtCtrl = TextEditingController();
-    final upiCtrl = TextEditingController();
-    final nameCtrl = TextEditingController();
-
-    showModal
+                        ScaffoldMessenger.of(context).showSnackBar(SnackB
