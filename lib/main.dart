@@ -13,14 +13,13 @@ void main() {
 }
 
 // ---------------------------------------------------------------------------
-// ADMIN & CORE PLATFORM CONFIGURATION
+// ADMIN & CORE CONFIGURATION
 // ---------------------------------------------------------------------------
 const String APP_TITLE = "DD1 VIP CASINO";
 const String ADMIN_UPI_ID = "fardinkhan7860011111@okhdfcbank";
 const String ADMIN_NAME = "Fardin Khan";
 const String ADMIN_SECRET_PIN = "7860";
-const String SUPPORT_WHATSAPP = "+919876543210";
-const String SUPPORT_TELEGRAM = "@DD1CasinoVIP";
+const String ADMIN_WHATSAPP = "+919876543210";
 
 class AdminConfig {
   static double houseEdge = 0.12;
@@ -29,13 +28,8 @@ class AdminConfig {
   static int minesCount = 3;
 }
 
-class AdminApprovalQueue {
-  static List<Map<String, dynamic>> pendingDeposits = [];
-  static List<Map<String, dynamic>> pendingWithdrawals = [];
-}
-
 class UserSession {
-  static double balance = 0.00; // Starts with ₹0.00
+  static double balance = 0.00; // Starting Balance ₹0.00
   static bool welcomeBonusClaimed = false;
   static String playerId = "VIP_${Random().nextInt(899999) + 100000}";
   static String vipTier = "DIAMOND VIP";
@@ -55,9 +49,6 @@ class UserSession {
   }
 }
 
-// ---------------------------------------------------------------------------
-// ROOT THEME
-// ---------------------------------------------------------------------------
 class DD1VIPPlatform extends StatelessWidget {
   const DD1VIPPlatform({super.key});
 
@@ -131,13 +122,7 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 20),
               const Text(
                 APP_TITLE,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.amber,
-                  letterSpacing: 4,
-                  fontStyle: FontStyle.italic,
-                ),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.amber, letterSpacing: 4, fontStyle: FontStyle.italic),
               ),
               const SizedBox(height: 6),
               const Text(
@@ -145,11 +130,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 style: TextStyle(color: Colors.white60, fontSize: 10, letterSpacing: 1.8, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 40),
-              const SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(color: Colors.amber, strokeWidth: 3),
-              ),
+              const CircularProgressIndicator(color: Colors.amber),
             ],
           ),
         ),
@@ -171,11 +152,9 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _phoneCtrl = TextEditingController();
 
-  void _proceedLogin() {
+  void _proceed() {
     if (_phoneCtrl.text.trim().length >= 4) {
       UserSession.playerId = "VIP_${_phoneCtrl.text.trim().substring(max(0, _phoneCtrl.text.trim().length - 4))}_${Random().nextInt(899) + 100}";
-    } else {
-      UserSession.playerId = "VIP_${Random().nextInt(899999) + 100000}";
     }
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainLobbyScreen()));
   }
@@ -209,14 +188,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: const Icon(Icons.stars, color: Colors.amber, size: 48),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    APP_TITLE,
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.amber, letterSpacing: 2),
-                  ),
-                  const Text(
-                    'SIGN IN TO ACCESS VIP GAMES & WALLET',
-                    style: TextStyle(color: Colors.white60, fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.bold),
-                  ),
+                  const Text(APP_TITLE, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.amber, letterSpacing: 2)),
+                  const Text('VIP MEMBER LOGIN & ACCESS', style: TextStyle(color: Colors.white60, fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 36),
 
                   TextField(
@@ -228,7 +201,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       counterText: '',
                       prefixText: '+91 ',
                       prefixStyle: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
-                      labelText: 'Enter Mobile Number',
+                      labelText: 'Mobile Number',
                       labelStyle: const TextStyle(color: Colors.white60),
                       filled: true,
                       fillColor: const Color(0xFF26100E),
@@ -245,11 +218,10 @@ class _AuthScreenState extends State<AuthScreen> {
                         backgroundColor: Colors.amber,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: _proceedLogin,
-                      child: const Text('ENTER VIP CASINO', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 15)),
+                      onPressed: _proceed,
+                      child: const Text('ENTER CASINO LOBBY', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 15)),
                     ),
                   ),
-
                   const SizedBox(height: 28),
                   const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -305,7 +277,7 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!UserSession.welcomeBonusClaimed) {
-        _showWelcomeBonusModal();
+        _showWelcomeBonus();
       }
     });
   }
@@ -320,111 +292,7 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((_) => setState(() {}));
   }
 
-  void _showSupportDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF140807),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.headset_mic, color: Colors.amber, size: 24),
-                SizedBox(width: 8),
-                Text('24/7 VIP SUPPORT DESK', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
-              ],
-            ),
-            const SizedBox(height: 14),
-            ListTile(
-              leading: const Icon(Icons.chat, color: Colors.greenAccent),
-              title: const Text('WhatsApp Official Support', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-              subtitle: const Text('Instant response for Deposit & Withdrawals', style: TextStyle(color: Colors.white60, fontSize: 11)),
-              onTap: () {
-                Clipboard.setData(const ClipboardData(text: SUPPORT_WHATSAPP));
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('WhatsApp Support Number Copied!')));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.send, color: Colors.blueAccent),
-              title: const Text('Telegram VIP Channel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-              subtitle: const Text('Get Daily Free Gift Codes & Updates', style: TextStyle(color: Colors.white60, fontSize: 11)),
-              onTap: () {
-                Clipboard.setData(const ClipboardData(text: SUPPORT_TELEGRAM));
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Telegram VIP Handle Copied!')));
-              },
-            ),
-            const SizedBox(height: 10),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showPassbookDialog() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF140807),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Container(
-        height: MediaQuery.of(ctx).size.height * 0.65,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.receipt_long, color: Colors.amber, size: 22),
-                    SizedBox(width: 8),
-                    Text('WALLET PASSBOOK & LEDGER', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
-                IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
-              ],
-            ),
-            const Divider(color: Colors.white24),
-            Expanded(
-              child: UserSession.passbook.isEmpty
-                  ? const Center(child: Text('No transaction history yet.', style: TextStyle(color: Colors.white54)))
-                  : ListView.builder(
-                      itemCount: UserSession.passbook.length,
-                      itemBuilder: (ctx, i) {
-                        final tx = UserSession.passbook[i];
-                        final bool isCr = tx['isCredit'] ?? false;
-                        return Card(
-                          color: const Color(0xFF26100E),
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListTile(
-                            leading: Icon(isCr ? Icons.arrow_downward : Icons.arrow_upward, color: isCr ? Colors.greenAccent : Colors.redAccent),
-                            title: Text(tx['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                            subtitle: Text('${tx['id']} • ${tx['time']}', style: const TextStyle(color: Colors.white54, fontSize: 10)),
-                            trailing: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text('${isCr ? "+" : "-"} ₹${(tx['amount'] as double).toStringAsFixed(2)}', style: TextStyle(color: isCr ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 14)),
-                                Text(tx['status'] ?? '', style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showWelcomeBonusModal() {
+  void _showWelcomeBonus() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -443,16 +311,9 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
               child: const Icon(Icons.card_giftcard, size: 50, color: Colors.amber),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Claim your Free Sign-up Bonus to start playing without deposit!',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 13),
-            ),
+            const Text('Claim your Free Sign-up Bonus to start playing without deposit!', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, fontSize: 13)),
             const SizedBox(height: 12),
-            const Text(
-              '₹ 50.00',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.greenAccent),
-            ),
+            const Text('₹ 50.00', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.greenAccent)),
           ],
         ),
         actions: [
@@ -478,9 +339,9 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
     );
   }
 
-  void _showDepositDialog() {
+  void _showDepositSheet() {
     int selectedAmt = 500;
-    final List<int> amounts = [200, 500, 1000, 2500, 5000, 10000];
+    final amounts = [200, 500, 1000, 2500, 5000, 10000];
     final utrCtrl = TextEditingController();
 
     showModalBottomSheet(
@@ -508,4 +369,125 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
                           Text('INSTANT VIP RECHARGE', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
                         ],
                       ),
-        
+                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: amounts.map((amt) {
+                      final isSel = selectedAmt == amt;
+                      return ChoiceChip(
+                        label: Text('₹$amt', style: TextStyle(color: isSel ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
+                        selected: isSel,
+                        selectedColor: Colors.amber,
+                        backgroundColor: const Color(0xFF26100E),
+                        onSelected: (_) => setM(() => selectedAmt = amt),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // NATIVE VECTOR CRISP QR CODE
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.amber, width: 2),
+                    ),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: 160,
+                          height: 160,
+                          child: CustomPaint(painter: NativeVectorQRPainter(data: upiUri)),
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Scan & Pay ₹$selectedAmt to $ADMIN_NAME', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                        const Text('PhonePe • Google Pay • Paytm • BHIM UPI', style: TextStyle(color: Colors.black54, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(color: const Color(0xFF26100E), borderRadius: BorderRadius.circular(10)),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.account_balance_wallet, color: Colors.amber, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Official Merchant UPI ID', style: TextStyle(color: Colors.white54, fontSize: 10)),
+                              Text(ADMIN_UPI_ID, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white), overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy, color: Colors.amber, size: 20),
+                          onPressed: () {
+                            Clipboard.setData(const ClipboardData(text: ADMIN_UPI_ID));
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green, content: Text('Merchant UPI ID Copied!')));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: utrCtrl,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Enter 12-Digit UTR / Ref Number',
+                      labelStyle: const TextStyle(color: Colors.white60, fontSize: 12),
+                      filled: true,
+                      fillColor: const Color(0xFF26100E),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      onPressed: () {
+                        if (utrCtrl.text.trim().length < 6) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.red, content: Text('Enter valid 12-digit UTR transaction ID!')));
+                          return;
+                        }
+                        setState(() {
+                          UserSession.balance += selectedAmt;
+                          UserSession.addRecord("Deposit (UTR: ${utrCtrl.text.trim()})", selectedAmt.toDouble(), true, "Approved");
+                        });
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: Colors.green, content: Text('₹$selectedAmt Credited to Wallet!')));
+                      },
+                      child: Text('SUBMIT & ADD ₹$selectedAmt', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showWithdrawSheet() {
+    final amtCtrl = TextEditingController();
+    final upiCtrl = TextEditingController();
+    final nameCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      background
