@@ -20,16 +20,24 @@ const String APP_TITLE = "DD1 VIP CASINO";
 const String ADMIN_UPI_ID = "fardinkhan7860011111@okhdfcbank";
 const String ADMIN_NAME = "Fardin Khan";
 const String ADMIN_SECRET_PIN = "7860";
+const String SUPPORT_WHATSAPP = "+919876543210";
+const String SUPPORT_TELEGRAM = "@DD1CasinoVIP";
 
 class AdminConfig {
-  static double houseEdge = 0.12;
-  static double maxCrash = 12.5;
+  static double houseEdge = 0.12; // 12% House Edge
+  static double maxCrash = 12.5;  // Max Multiplier Cap
   static double slotWinRate = 0.35;
   static int minesCount = 3;
 }
 
+// Global Pending Approval Queue for Admin
+class AdminApprovalQueue {
+  static List<Map<String, dynamic>> pendingDeposits = [];
+  static List<Map<String, dynamic>> pendingWithdrawals = [];
+}
+
 class UserSession {
-  static double balance = 0.00;
+  static double balance = 0.00; // Starts with ₹0.00
   static bool welcomeBonusClaimed = false;
   static String playerId = "VIP_${Random().nextInt(899999) + 100000}";
   static String vipTier = "DIAMOND VIP";
@@ -37,7 +45,7 @@ class UserSession {
   static List<Map<String, dynamic>> passbook = [];
 
   static void addRecord(String title, double amount, bool isCredit, String status) {
-    HapticFeedback.lightImpact();
+    HapticFeedback.mediumImpact();
     passbook.insert(0, {
       'id': 'TXN_${Random().nextInt(899999) + 100000}',
       'title': title,
@@ -314,6 +322,110 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((_) => setState(() {}));
   }
 
+  void _showSupportDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF140807),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.headset_mic, color: Colors.amber, size: 24),
+                SizedBox(width: 8),
+                Text('24/7 VIP SUPPORT DESK', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ListTile(
+              leading: const Icon(Icons.chat, color: Colors.greenAccent),
+              title: const Text('WhatsApp Official Support', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              subtitle: const Text('Instant response for Deposit & Withdrawals', style: TextStyle(color: Colors.white60, fontSize: 11)),
+              onTap: () {
+                Clipboard.setData(const ClipboardData(text: SUPPORT_WHATSAPP));
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('WhatsApp Support Number Copied!')));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.send, color: Colors.blueAccent),
+              title: const Text('Telegram VIP Channel', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              subtitle: const Text('Get Daily Free Gift Codes & Updates', style: TextStyle(color: Colors.white60, fontSize: 11)),
+              onTap: () {
+                Clipboard.setData(const ClipboardData(text: SUPPORT_TELEGRAM));
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Telegram VIP Handle Copied!')));
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPassbookDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF140807),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.65,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.receipt_long, color: Colors.amber, size: 22),
+                    SizedBox(width: 8),
+                    Text('WALLET PASSBOOK & LEDGER', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
+                  ],
+                ),
+                IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+              ],
+            ),
+            const Divider(color: Colors.white24),
+            Expanded(
+              child: UserSession.passbook.isEmpty
+                  ? const Center(child: Text('No transaction history yet.', style: TextStyle(color: Colors.white54)))
+                  : ListView.builder(
+                      itemCount: UserSession.passbook.length,
+                      itemBuilder: (ctx, i) {
+                        final tx = UserSession.passbook[i];
+                        final bool isCr = tx['isCredit'] ?? false;
+                        return Card(
+                          color: const Color(0xFF26100E),
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          child: ListTile(
+                            leading: Icon(isCr ? Icons.arrow_downward : Icons.arrow_upward, color: isCr ? Colors.greenAccent : Colors.redAccent),
+                            title: Text(tx['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            subtitle: Text('${tx['id']} • ${tx['time']}', style: const TextStyle(color: Colors.white54, fontSize: 10)),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('${isCr ? "+" : "-"} ₹${(tx['amount'] as double).toStringAsFixed(2)}', style: TextStyle(color: isCr ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+                                Text(tx['status'] ?? '', style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showWelcomeBonusModal() {
     showDialog(
       context: context,
@@ -395,105 +507,4 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
                         children: [
                           Icon(Icons.bolt, color: Colors.amber, size: 24),
                           SizedBox(width: 8),
-                          Text('INSTANT VIP RECHARGE', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
-                        ],
-                      ),
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: amounts.map((amt) {
-                      final isSel = selectedAmt == amt;
-                      return ChoiceChip(
-                        label: Text('₹$amt', style: TextStyle(color: isSel ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
-                        selected: isSel,
-                        selectedColor: Colors.amber,
-                        backgroundColor: const Color(0xFF26100E),
-                        onSelected: (_) => setM(() => selectedAmt = amt),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 14),
-
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.amber, width: 2),
-                    ),
-                    child: Column(
-                      children: [
-                        QrImageView(
-                          data: upiUri,
-                          version: QrVersions.auto,
-                          size: 160.0,
-                          backgroundColor: Colors.white,
-                        ),
-                        const SizedBox(height: 8),
-                        Text('Scan & Pay ₹$selectedAmt to $ADMIN_NAME', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
-                        const Text('PhonePe • Google Pay • Paytm • BHIM UPI', style: TextStyle(color: Colors.black54, fontSize: 10, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(color: const Color(0xFF26100E), borderRadius: BorderRadius.circular(10)),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.account_balance_wallet, color: Colors.amber, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Official Merchant UPI ID', style: TextStyle(color: Colors.white54, fontSize: 10)),
-                              Text(ADMIN_UPI_ID, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white), overflow: TextOverflow.ellipsis),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.copy, color: Colors.amber, size: 20),
-                          onPressed: () {
-                            Clipboard.setData(const ClipboardData(text: ADMIN_UPI_ID));
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green, content: Text('Merchant UPI ID Copied!')));
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: utrCtrl,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Enter 12-Digit UTR / Ref Number',
-                      labelStyle: const TextStyle(color: Colors.white60, fontSize: 12),
-                      filled: true,
-                      fillColor: const Color(0xFF26100E),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      onPressed: () {
-                        if (utrCtrl.text.trim().length < 6) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.red, content: Text('Enter valid 12-digit UTR transaction ID!')));
-                          return;
-                        }
-                        setState(() {
-                          UserSession.balance += selectedAmt;
-                          UserSession.addRecord("Deposit Added (UTR: ${utrCtrl.text.trim()})", selectedAmt.toDouble(), true, "Approved");
-                        });
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackB
+                          Text('INSTANT VIP RECHARGE', style: TextSt
