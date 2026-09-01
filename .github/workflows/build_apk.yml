@@ -23,9 +23,12 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Recreate Android Project Files
+      - name: Create Android Wrappers safely
         run: |
+          mkdir -p temp_backup
+          cp lib/main.dart temp_backup/
           flutter create --platforms=android --org com.dd1casino .
+          cp temp_backup/main.dart lib/main.dart
 
       - name: Get Dependencies
         run: flutter pub get
