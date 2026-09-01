@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Source Code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Java 17
@@ -24,19 +24,23 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Build Standalone App Package
+      - name: Generate Fresh Project & Build APK
         run: |
-          cd $RUNNER_TEMP
-          flutter create --platforms=android --org com.dd1casino vip_app
-          cd vip_app
-          cp $GITHUB_WORKSPACE/lib/main.dart lib/main.dart
-          flutter pub get
-          flutter build apk --release
-          cp build/app/outputs/flutter-apk/app-release.apk $GITHUB_WORKSPACE/dd1-vip-casino.apk
+          mkdir -p /tmp/app_source
+          cp lib/main.dart /tmp/app_source/main.dart
+          
+          cd /tmp
+          flutter create --platforms=android --org com.dd1casino dd1_casino_app
+          cd dd1_casino_app
+          
+          cp /tmp/app_source/main.dart lib/main.dart
+          
+          flutter build apk --release --no-tree-shake-icons
+          
+          cp build/app/outputs/flutter-apk/app-release.apk $GITHUB_WORKSPACE/DD1-VIP-Casino-Release.apk
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: DD1-VIP-Casino-APK
-          path: dd1-vip-casino.apk
-          
+          path: DD1-VIP-Casino-Release.apk
