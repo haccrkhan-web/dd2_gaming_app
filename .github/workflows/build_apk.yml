@@ -23,6 +23,10 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Recreate Android Project Files
+        run: |
+          flutter create --platforms=android --org com.dd1casino .
+
       - name: Get Dependencies
         run: flutter pub get
 
