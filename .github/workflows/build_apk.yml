@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
       - name: Setup Java 17
@@ -24,21 +24,19 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Rebuild Android Environment Safely
+      - name: Build Standalone App Package
         run: |
-          mkdir -p temp_backup
-          cp lib/main.dart temp_backup/
-          flutter create --platforms=android --org com.dd1casino .
-          cp temp_backup/main.dart lib/main.dart
+          cd $RUNNER_TEMP
+          flutter create --platforms=android --org com.dd1casino vip_app
+          cd vip_app
+          cp $GITHUB_WORKSPACE/lib/main.dart lib/main.dart
+          flutter pub get
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk $GITHUB_WORKSPACE/dd1-vip-casino.apk
 
-      - name: Get Dependencies
-        run: flutter pub get
-
-      - name: Build Release APK
-        run: flutter build apk --release
-
-      - name: Upload Finished APK
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: DD1-VIP-Casino-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: dd1-vip-casino.apk
+          
