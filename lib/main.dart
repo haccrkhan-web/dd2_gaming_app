@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,13 +23,12 @@ const String SUPPORT_WHATSAPP = "+919876543210";
 const String SUPPORT_TELEGRAM = "@DD1CasinoVIP";
 
 class AdminConfig {
-  static double houseEdge = 0.12; // 12% House Edge
-  static double maxCrash = 12.5;  // Max Multiplier Cap
+  static double houseEdge = 0.12;
+  static double maxCrash = 12.5;
   static double slotWinRate = 0.35;
   static int minesCount = 3;
 }
 
-// Global Pending Approval Queue for Admin
 class AdminApprovalQueue {
   static List<Map<String, dynamic>> pendingDeposits = [];
   static List<Map<String, dynamic>> pendingWithdrawals = [];
@@ -45,7 +43,7 @@ class UserSession {
   static List<Map<String, dynamic>> passbook = [];
 
   static void addRecord(String title, double amount, bool isCredit, String status) {
-    HapticFeedback.mediumImpact();
+    HapticFeedback.lightImpact();
     passbook.insert(0, {
       'id': 'TXN_${Random().nextInt(899999) + 100000}',
       'title': title,
@@ -507,4 +505,7 @@ class _MainLobbyScreenState extends State<MainLobbyScreen> {
                         children: [
                           Icon(Icons.bolt, color: Colors.amber, size: 24),
                           SizedBox(width: 8),
-                          Text('INSTANT VIP RECHARGE', style: TextSt
+                          Text('INSTANT VIP RECHARGE', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
+                        ],
+                      ),
+        
